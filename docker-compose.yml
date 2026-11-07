@@ -78,21 +78,36 @@ services:
       - "127.0.0.1:${ADMINER_PORT:-8080}:8080"
 
   # -------------------------------------------------------------------
-  # EXEMPLO (comentado): como um serviço NOSSO entraria aqui depois.
-  # Descomente e adapte quando o protótipo da API estiver pronto.
+  # API: FastAPI (nosso código). Abra http://localhost:8000/health
+  # Documentação interativa: http://localhost:8000/docs
   # -------------------------------------------------------------------
-  # api:
-  #   build: ./api                      # constrói a imagem a partir do Dockerfile em ./api
-  #   restart: unless-stopped
-  #   environment:
-  #     # Dentro da rede do Compose, o banco é acessado pelo NOME do serviço ("db"),
-  #     # e a porta é a de DENTRO (5432), não a que você abriu no seu PC.
-  #     DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   ports:
-  #     - "127.0.0.1:3000:3000"
+  api:
+    build: ./backend                    # constrói a imagem a partir de backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      # Dentro da rede do Compose, os outros serviços são acessados pelo NOME
+      # ("db", "redis") e pela porta de DENTRO, não a que abrimos no seu PC.
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"   # só o seu PC acessa
+    healthcheck:
+      # A imagem slim não tem curl; usamos o Python. Se a resposta não for
+      # 200, o urlopen levanta erro e o healthcheck falha.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
 volumes:
   db_data:    # declara o volume usado pelo db (o Docker cria e gerencia)
