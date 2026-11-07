@@ -6,7 +6,7 @@
 |---|---|
 | Responsável | |
 | Data | |
-| Notebook (link ou caminho) | |
+| Notebook (./ml/notebooks/T10_Baseline_Classico.ipynb) | |
 | Foto usada | `ovitrampa2.jpg`? (confirmar) |
 | Origem da foto | baixada da internet. Link: ___ · Licença/uso: ___ |
 | Tamanho da foto (px) | 1608×1206? (confirmar) |
